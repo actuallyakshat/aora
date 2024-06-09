@@ -1,21 +1,38 @@
-import { View, Text, ScrollView, Image } from "react-native";
+import { View, Text, ScrollView, Image, Alert } from "react-native";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { images } from "@/constants";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import FormField from "@/components/FormField";
 import CustomButton from "@/components/CustomButton";
+import { createUser } from "@/appwrite";
 
 const SignUp = () => {
   const [form, setForm] = React.useState({
     email: "",
     password: "",
+    username: "",
   });
   const [loading, setLoading] = React.useState(false);
+  const [user, setUser] = React.useState<any>(null);
+  const [isLoggedIn, setIsLoggedIn] = React.useState(false);
 
   async function submitHandler() {
+    if (!form.email || !form.password || !form.username) {
+      Alert.alert("Please fill all fields");
+      return;
+    }
     setLoading(true);
-    console.log(form);
+    try {
+      const result = await createUser(form.email, form.password, form.username);
+      setUser(result);
+      setIsLoggedIn(true);
+      router.replace("/home");
+    } catch (error: any) {
+      Alert.alert("Error", error.message);
+    } finally {
+      setLoading(false);
+    }
     setLoading(false);
   }
 
@@ -33,9 +50,9 @@ const SignUp = () => {
           </Text>
           <FormField
             title="Username"
-            value={form.email}
+            value={form.username}
             handleChangeText={(text: string) =>
-              setForm({ ...form, email: text })
+              setForm({ ...form, username: text })
             }
             otherStyles="mt-7"
             placeholder="Username"
@@ -61,7 +78,7 @@ const SignUp = () => {
             placeholder="Password"
           />
           <CustomButton
-            title="Sign In"
+            title="Sign Up"
             handlePress={submitHandler}
             containerStyles="mt-7 w-full"
             isLoading={loading}
@@ -74,7 +91,7 @@ const SignUp = () => {
               href="/sign-in"
               className="text-lg font-psemibold text-secondary"
             >
-              Sign In
+              Sign Up
             </Link>
           </View>
         </View>
